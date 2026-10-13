@@ -166,6 +166,11 @@ aria-assistant/
 ├── render.yaml
 ├── requirements.txt
 ├── README.md
+├── static/
+│   ├── css/
+│   │   └── chat.css
+│   └── js/
+│       └── chat.js
 ├── templates/
 │   └── chat.html
 └── uploads/
