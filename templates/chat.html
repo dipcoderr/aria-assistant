@@ -7,7 +7,6 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f0f1a'/%3E%3Cpath d='M32 11 12 53h9l11-25 11 25h9L32 11Z' fill='%23c4b5fd'/%3E%3Cpath d='M24 40h16' stroke='%237c6ff7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <!-- Markdown renderer -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
@@ -30,14 +29,10 @@
     html,body{height:100%;overflow:hidden}
     body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex}
 
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar{width:4px;height:4px}
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
 
-    /* ══════════════════════════════
-       SIDEBAR
-    ══════════════════════════════ */
     .sidebar{
       width:260px;min-width:260px;
       background:var(--surface);
@@ -70,7 +65,6 @@
     }
     .new-btn:hover{background:rgba(124,111,247,0.2);border-color:rgba(124,111,247,.4)}
 
-    /* Capabilities list */
     .sidebar-scroll{flex:1;overflow-y:auto;padding:16px}
 
     .cap-group{margin-bottom:20px}
@@ -104,12 +98,8 @@
     .user-name{font-size:13px;font-weight:500}
     .user-plan{font-size:11px;color:var(--muted)}
 
-    /* ══════════════════════════════
-       MAIN
-    ══════════════════════════════ */
     .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
-    /* Topbar */
     .topbar{
       padding:14px 28px;
       border-bottom:1px solid var(--border);
@@ -135,14 +125,12 @@
     }
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-    /* Messages */
     .messages{
       flex:1;overflow-y:auto;
       padding:28px 40px;
       display:flex;flex-direction:column;gap:20px;
     }
 
-    /* Empty state */
     .empty{
       margin:auto;text-align:center;
       display:flex;flex-direction:column;align-items:center;gap:16px;
@@ -168,7 +156,6 @@
     }
     .chip:hover{background:rgba(124,111,247,0.1);border-color:rgba(124,111,247,.3);color:var(--text)}
 
-    /* Message rows */
     .row{display:flex;gap:12px;align-items:flex-start;animation:fadeUp .25s ease}
     .row.human{flex-direction:row-reverse}
     @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -197,7 +184,6 @@
       border-radius:18px 18px 18px 4px;
     }
 
-    /* Markdown inside AI bubble */
     .row.ai .bubble h1,.row.ai .bubble h2,.row.ai .bubble h3{
       margin:12px 0 6px;font-weight:600;
     }
@@ -229,7 +215,7 @@
     .row.ai .bubble th{background:rgba(124,111,247,0.1);color:var(--accent2)}
     .row.ai .bubble hr{border:none;border-top:1px solid var(--border);margin:12px 0}
 
-    /* Typing indicator */
+
     .typing-row{display:none;gap:12px;align-items:flex-start}
     .typing-row.show{display:flex}
     .typing-dots{
@@ -245,9 +231,6 @@
     .typing-dots span:nth-child(3){animation-delay:.4s}
     @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
 
-    /* ══════════════════════════════
-       INPUT AREA
-    ══════════════════════════════ */
     .input-area{
       padding:16px 40px 20px;
       background:var(--bg);
@@ -255,7 +238,6 @@
       flex-shrink:0;
     }
 
-    /* File preview */
     .file-preview{
       display:none;align-items:center;gap:8px;
       padding:7px 12px;margin-bottom:10px;
@@ -314,7 +296,6 @@
 
     .hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
 
-    /* ── Voice controls ── */
     .voice-bar{
       display:flex;align-items:center;justify-content:center;gap:10px;
       margin-bottom:10px;
@@ -339,7 +320,6 @@
     .voice-feedback{min-height:1em;font-size:11px;color:var(--muted2);text-align:center}
     .voice-feedback:empty{display:none}
 
-    /* Mic button */
     .mic-btn{
       width:34px;height:34px;border-radius:8px;
       background:rgba(255,255,255,0.05);border:1px solid var(--border);
@@ -358,7 +338,6 @@
       50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}
     }
 
-    /* Speaking indicator in topbar */
     .speaking-badge{
       display:none;align-items:center;gap:6px;
       font-size:11.5px;color:var(--accent2);
@@ -383,7 +362,6 @@
 </head>
 <body>
 
-<!-- ── SIDEBAR ─────────────────────────────────────────── -->
 <aside class="sidebar">
   <div class="sidebar-top">
     <div class="logo">
@@ -491,7 +469,6 @@
   </div>
 </aside>
 
-<!-- ── MAIN ────────────────────────────────────────────── -->
 <main class="main">
   <div class="topbar">
     <div class="topbar-left">
@@ -510,7 +487,6 @@
     </div>
   </div>
 
-  <!-- Messages -->
   <div class="messages" id="messages">
     {% if messages %}
       {% for msg in messages %}
@@ -552,7 +528,6 @@
     {% endif %}
   </div>
 
-  <!-- Input -->
   <div class="input-area">
 
     <div class="voice-bar">
@@ -567,7 +542,6 @@
       <span class="voice-feedback" id="voice-feedback" role="status" aria-live="polite"></span>
     </div>
 
-    <!-- File preview bar -->
     <div class="file-preview" id="file-preview">
       <span>📎</span>
       <span id="file-name-display"></span>
@@ -608,25 +582,20 @@
 </main>
 
 <script>
-  // ── Render markdown in AI bubbles ──────────────────────────
   document.querySelectorAll('.markdown-content').forEach(el => {
-    // If bubble already contains an img (image generation), don't re-parse as markdown
     if (el.querySelector('img')) return;
     el.innerHTML = marked.parse(el.textContent);
   });
 
-  // ── Auto-scroll ───────────────────────────────────────────
   const msgs = document.getElementById('messages');
   msgs.scrollTop = msgs.scrollHeight;
 
-  // ── Auto-resize textarea ─────────────────────────────────
   const ta = document.getElementById('msg-input');
   ta.addEventListener('input', () => {
     ta.style.height = 'auto';
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
   });
 
-  // ── Enter = send ──────────────────────────────────────────
   ta.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -635,11 +604,9 @@
     }
   });
 
-  // ── Submit ────────────────────────────────────────────────
   function submitForm() {
     const typing = document.getElementById('typing');
     if (typing) { typing.classList.add('show'); msgs.scrollTop = msgs.scrollHeight; }
-    // Stop any ongoing speech before submitting
     window.speechSynthesis && window.speechSynthesis.cancel();
     document.getElementById('chat-form').submit();
   }
@@ -649,7 +616,6 @@
     window.speechSynthesis && window.speechSynthesis.cancel();
   });
 
-  // ── File attachment ───────────────────────────────────────
   function onFileSelected(input) {
     if (input.files && input.files[0]) {
       const name = input.files[0].name;
@@ -665,7 +631,6 @@
     updateModeTag('Chat');
   }
 
-  // ── Quick prompt chips / sidebar ─────────────────────────
   function setPrompt(text) {
     ta.value = text;
     ta.focus();
@@ -688,9 +653,6 @@
     document.getElementById('mode-tag').textContent = label;
   }
 
-  // ════════════════════════════════════════════════
-  //  VOICE — Speech-to-Text (STT)
-  // ════════════════════════════════════════════════
   let recognition = null;
   let isListening = false;
 
@@ -736,7 +698,6 @@
       ta.value = transcript;
       ta.style.height = 'auto';
       ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
-      // If final result, auto-submit
       if (e.results[e.results.length - 1].isFinal) {
         stopListening();
         setTimeout(() => submitForm(), 400);
@@ -780,9 +741,6 @@
     if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
   }
 
-  // ════════════════════════════════════════════════
-  //  VOICE — Text-to-Speech (TTS)
-  // ════════════════════════════════════════════════
   let ttsEnabled = false;
 
   function toggleTTS() {
@@ -811,7 +769,6 @@
     }
     window.speechSynthesis.cancel();
 
-    // Strip markdown syntax for cleaner speech
     const clean = text
       .replace(/#{1,6}\s/g, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -828,7 +785,6 @@
     utter.pitch = 1.0;
     utter.volume = 1.0;
 
-    // Pick a good voice if available
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v =>
       /google|natural/i.test(v.name) || v.lang === 'en-US'
@@ -849,13 +805,10 @@
     window.speechSynthesis.speak(utter);
   }
 
-  // ── Auto-speak last AI reply on page load ─────────────────
   window.addEventListener('load', () => {
-    // Voices load async in some browsers
     if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = () => {}; // preload voices
+      window.speechSynthesis.onvoiceschanged = () => {};
     }
-    // Speak the latest reply when the user previously enabled read-aloud.
     ttsEnabled = sessionStorage.getItem('ttsEnabled') === 'true';
     if (ttsEnabled) {
       document.getElementById('tts-toggle').classList.add('active');
@@ -869,12 +822,10 @@
     }
   });
 
-  // Save TTS preference before page navigates away
   document.getElementById('chat-form').addEventListener('submit', () => {
     sessionStorage.setItem('ttsEnabled', ttsEnabled);
   });
 
-  // ── Focus input on load ───────────────────────────────────
   ta.focus();
 </script>
 </body>
