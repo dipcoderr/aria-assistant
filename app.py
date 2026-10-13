@@ -5,12 +5,10 @@ import uuid, os
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY') or os.urandom(32)
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max upload
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def extract_text_from_file(filepath: str, filename: str) -> str:
     """Extract plain text from uploaded files."""
@@ -52,15 +50,12 @@ def get_ai_reply(content: str, thread_id: str) -> str:
             for p in reply
         ).strip()
 
-    # Convert IMAGE_URL: marker to an HTML img tag
     reply = re.sub(
         r'IMAGE_URL:(https?://\S+)',
         r'<img src="\1" alt="Generated image" style="max-width:100%;border-radius:12px;margin-top:8px;display:block;">',
         reply
     )
     return reply
-
-# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/')
 def home():
@@ -77,13 +72,11 @@ def send():
     file_content = ''
     file_name    = ''
 
-    # Handle file upload
     if file and file.filename:
         file_name = file.filename
         filepath  = os.path.join(UPLOAD_FOLDER, file_name)
         file.save(filepath)
         file_content = extract_text_from_file(filepath, file_name)
-        # Combine file content with user message
         if user_message:
             full_content = f"{user_message}\n\n[File: {file_name}]\n{file_content}"
         else:
@@ -95,10 +88,8 @@ def send():
         full_content    = user_message
         display_message = user_message
 
-    # Get AI reply
     ai_reply = get_ai_reply(full_content, session['thread_id'])
 
-    # Store in session
     session['messages'].append({'type': 'human', 'content': display_message})
     session['messages'].append({'type': 'ai',    'content': ai_reply})
     session.modified = True

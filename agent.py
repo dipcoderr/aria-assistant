@@ -10,12 +10,6 @@ load_dotenv()
 DB_URI         = os.getenv("SUPABASE_DB_URI")
 OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")
 
-# ═══════════════════════════════════════════════════════════════
-#  TOOLS
-# ═══════════════════════════════════════════════════════════════
-
-# ── Text tasks ────────────────────────────────────────────────
-
 def summarize_text(text: str) -> str:
     """Summarize a long piece of text into key points. Pass the full text to summarize."""
     return f"[SUMMARIZE THIS TEXT]\n{text}"
@@ -36,8 +30,6 @@ def analyze_sentiment(text: str) -> str:
     """Analyze the sentiment of text. Returns positive, negative, neutral with reasoning."""
     return f"[ANALYZE SENTIMENT - return JSON with: sentiment, confidence, reasoning]\n{text}"
 
-# ── Reasoning & analysis ──────────────────────────────────────
-
 def explain_concept(concept: str, level: str = "simple") -> str:
     """Explain a complex concept. level can be: simple, intermediate, expert."""
     return f"[EXPLAIN '{concept}' at {level} level with examples]"
@@ -49,8 +41,6 @@ def compare_things(item_a: str, item_b: str, criteria: str = "") -> str:
 def pros_and_cons(topic: str) -> str:
     """Give a balanced pros and cons analysis of a topic or decision."""
     return f"[PROS AND CONS ANALYSIS for: {topic}]"
-
-# ── Creative ──────────────────────────────────────────────────
 
 def write_creative(type: str, topic: str, style: str = "") -> str:
     """Write creative content. type: story, poem, script, product_description, blog_post. topic: what to write about. style: optional style hint."""
@@ -64,8 +54,6 @@ def generate_quiz(topic: str, num_questions: int = 5, difficulty: str = "medium"
     """Generate quiz questions with answers on a topic. difficulty: easy, medium, hard."""
     return f"[GENERATE {num_questions} {difficulty.upper()} quiz questions with answers about: {topic}]"
 
-# ── Structured output ─────────────────────────────────────────
-
 def parse_to_json(text: str, schema_hint: str = "") -> str:
     """Parse unstructured text into structured JSON. Optionally provide a schema hint."""
     return f"[PARSE TO JSON{' — schema: ' + schema_hint if schema_hint else ''}]\n{text}"
@@ -78,8 +66,6 @@ def generate_report(bullet_points: str, report_type: str = "summary") -> str:
     """Generate a structured report from bullet points. report_type: summary, detailed, executive."""
     return f"[GENERATE {report_type.upper()} REPORT from these points]\n{bullet_points}"
 
-# ── Tools with real logic ─────────────────────────────────────
-
 def generate_image(prompt: str, width: int = 768, height: int = 512, model: str = "flux") -> str:
     """Generate an image from a text prompt using AI. Returns the image URL.
     model options: flux (best quality), turbo (fastest), stable-diffusion.
@@ -91,18 +77,15 @@ def generate_image(prompt: str, width: int = 768, height: int = 512, model: str 
         f"https://image.pollinations.ai/prompt/{encoded}"
         f"?width={width}&height={height}&model={model}&seed={seed}&nologo=true&enhance=true"
     )
-    # Return a special marker the app uses to render it as an image
     return f"IMAGE_URL:{url}"
 
 def calculate(expression: str) -> str:
     """Evaluate a mathematical expression safely. Examples: '2 + 2', 'sqrt(144)', '15% of 200'."""
     try:
-        # Handle percentage expressions like "15% of 200"
         if "% of" in expression:
             parts = expression.split("% of")
             result = (float(parts[0].strip()) / 100) * float(parts[1].strip())
             return str(result)
-        # Safe math eval
         allowed = {k: getattr(math, k) for k in dir(math) if not k.startswith('_')}
         allowed['abs'] = abs
         result = eval(expression.replace('^', '**'), {"__builtins__": {}}, allowed)
@@ -147,8 +130,6 @@ def get_word_count(text: str) -> str:
         "estimated_reading_time_minutes": read_time
     })
 
-# ── Small talk extras ─────────────────────────────────────────
-
 def tell_joke() -> str:
     """Tell a short, clean joke."""
     return random.choice([
@@ -167,10 +148,6 @@ def get_fun_fact() -> str:
         "Bananas are technically berries, but strawberries are not.",
         "Wombat poop is cube-shaped.",
     ])
-
-# ═══════════════════════════════════════════════════════════════
-#  LLM + AGENT FACTORY
-# ═══════════════════════════════════════════════════════════════
 
 llm = ChatOpenAI(
     model="gemma4:31b",
@@ -198,17 +175,11 @@ RULES:
 """
 
 ALL_TOOLS = [
-    # Text
     summarize_text, improve_text, translate_text, extract_key_points, analyze_sentiment,
-    # Reasoning
     explain_concept, compare_things, pros_and_cons,
-    # Creative
     write_creative, brainstorm, generate_quiz,
-    # Structured
     parse_to_json, fill_template, generate_report,
-    # Tool-based
     generate_image, calculate, web_search, get_current_time, get_word_count,
-    # Fun
     tell_joke, get_fun_fact,
 ]
 
