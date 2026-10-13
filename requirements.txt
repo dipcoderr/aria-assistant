@@ -1,0 +1,10 @@
+flask
+langchain
+langchain-openai
+langgraph
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
+python-dotenv
+pypdf
+python-docx
+gunicorn
