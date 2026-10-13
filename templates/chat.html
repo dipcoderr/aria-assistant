@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aria</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f0f1a'/%3E%3Cpath d='M32 11 12 53h9l11-25 11 25h9L32 11Z' fill='%23c4b5fd'/%3E%3Cpath d='M24 40h16' stroke='%237c6ff7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg:       #080810;
+      --surface:  #0f0f1a;
+      --surface2: #14141f;
+      --border:   rgba(255,255,255,0.07);
+      --accent:   #7c6ff7;
+      --accent2:  #a78bfa;
+      --green:    #4ade80;
+      --text:     #e2e2f0;
+      --muted:    #5a5a7a;
+      --muted2:   #7a7a9a;
+      --human-bg: linear-gradient(135deg,#6d5ff5,#a78bfa);
+      --ai-bg:    #13131f;
+      --glow:     rgba(124,111,247,0.12);
+      --radius:   14px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex}
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+
+    /* ══════════════════════════════
+       SIDEBAR
+    ══════════════════════════════ */
+    .sidebar{
+      width:260px;min-width:260px;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      display:flex;flex-direction:column;
+      overflow:hidden;
+    }
+
+    .sidebar-top{padding:20px 16px;border-bottom:1px solid var(--border)}
+
+    .logo{display:flex;align-items:center;gap:10px;padding:4px 8px;margin-bottom:20px}
+    .logo-icon{
+      width:34px;height:34px;border-radius:10px;
+      background:var(--human-bg);
+      display:flex;align-items:center;justify-content:center;
+      font-family:Georgia,serif;font-size:20px;font-weight:600;
+      box-shadow:0 0 16px var(--glow);
+    }
+    .logo-text{font-size:16px;font-weight:700;letter-spacing:.3px}
+    .logo-text span{color:var(--accent2)}
+
+    .new-btn{
+      display:flex;align-items:center;gap:8px;
+      padding:9px 14px;border-radius:10px;
+      background:rgba(124,111,247,0.1);
+      border:1px solid rgba(124,111,247,0.2);
+      color:var(--accent2);font-size:13.5px;font-weight:500;
+      cursor:pointer;text-decoration:none;
+      transition:all .2s;width:100%;
+    }
+    .new-btn:hover{background:rgba(124,111,247,0.2);border-color:rgba(124,111,247,.4)}
+
+    /* Capabilities list */
+    .sidebar-scroll{flex:1;overflow-y:auto;padding:16px}
+
+    .cap-group{margin-bottom:20px}
+    .cap-label{
+      font-size:10px;font-weight:600;letter-spacing:1.2px;
+      text-transform:uppercase;color:var(--muted);
+      padding:0 8px;margin-bottom:8px;display:block;
+    }
+    .cap-item{
+      display:flex;align-items:center;gap:9px;
+      padding:7px 10px;border-radius:8px;
+      font-size:13px;color:var(--muted2);
+      cursor:pointer;transition:all .15s;
+      border:none;background:none;width:100%;text-align:left;
+    }
+    .cap-item:hover{background:rgba(255,255,255,0.04);color:var(--text)}
+    .cap-item.active{background:rgba(124,111,247,0.1);color:var(--text)}
+    .cap-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+
+    .sidebar-footer{
+      padding:14px 16px;
+      border-top:1px solid var(--border);
+      display:flex;align-items:center;gap:10px;
+    }
+    .avatar{
+      width:30px;height:30px;border-radius:50%;
+      background:var(--human-bg);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;flex-shrink:0;
+    }
+    .user-name{font-size:13px;font-weight:500}
+    .user-plan{font-size:11px;color:var(--muted)}
+
+    /* ══════════════════════════════
+       MAIN
+    ══════════════════════════════ */
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+    /* Topbar */
+    .topbar{
+      padding:14px 28px;
+      border-bottom:1px solid var(--border);
+      background:var(--surface);
+      display:flex;align-items:center;justify-content:space-between;
+      flex-shrink:0;
+    }
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-title{font-size:15px;font-weight:600}
+    .mode-tag{
+      font-size:11px;padding:3px 10px;border-radius:20px;
+      background:rgba(124,111,247,0.1);border:1px solid rgba(124,111,247,0.2);
+      color:var(--accent2);
+    }
+    .status{
+      display:flex;align-items:center;gap:7px;
+      font-size:12px;color:var(--muted2);
+    }
+    .dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--green);box-shadow:0 0 7px var(--green);
+      animation:pulse 2.5s infinite;
+    }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    /* Messages */
+    .messages{
+      flex:1;overflow-y:auto;
+      padding:28px 40px;
+      display:flex;flex-direction:column;gap:20px;
+    }
+
+    /* Empty state */
+    .empty{
+      margin:auto;text-align:center;
+      display:flex;flex-direction:column;align-items:center;gap:16px;
+      max-width:520px;
+    }
+    .empty-orb{
+      width:72px;height:72px;border-radius:50%;
+      background:var(--human-bg);
+      display:flex;align-items:center;justify-content:center;
+      font-family:Georgia,serif;font-size:38px;font-weight:600;
+      box-shadow:0 0 40px var(--glow);
+      margin-bottom:4px;
+    }
+    .empty h2{font-size:24px;font-weight:700}
+    .empty p{font-size:14px;color:var(--muted2);line-height:1.7}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+    .chip{
+      padding:7px 15px;border-radius:20px;
+      background:var(--surface2);border:1px solid var(--border);
+      font-size:12.5px;color:var(--muted2);
+      cursor:pointer;transition:all .2s;
+    }
+    .chip:hover{background:rgba(124,111,247,0.1);border-color:rgba(124,111,247,.3);color:var(--text)}
+
+    /* Message rows */
+    .row{display:flex;gap:12px;align-items:flex-start;animation:fadeUp .25s ease}
+    .row.human{flex-direction:row-reverse}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+    .row-avatar{
+      width:30px;height:30px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;flex-shrink:0;margin-top:2px;
+    }
+    .row.human .row-avatar{background:var(--human-bg);font-weight:700;font-size:11px}
+    .row.ai .row-avatar{background:#1a1a2e;border:1px solid rgba(124,111,247,0.25);font-size:14px}
+
+    .bubble{
+      max-width:70%;padding:11px 16px;
+      font-size:14px;line-height:1.7;word-wrap:break-word;
+    }
+    .row.human .bubble{
+      background:var(--human-bg);color:#fff;
+      border-radius:18px 18px 4px 18px;
+      box-shadow:0 4px 20px rgba(110,95,245,.25);
+      white-space:pre-wrap;
+    }
+    .row.ai .bubble{
+      background:var(--ai-bg);color:var(--text);
+      border:1px solid var(--border);
+      border-radius:18px 18px 18px 4px;
+    }
+
+    /* Markdown inside AI bubble */
+    .row.ai .bubble h1,.row.ai .bubble h2,.row.ai .bubble h3{
+      margin:12px 0 6px;font-weight:600;
+    }
+    .row.ai .bubble h1{font-size:17px}
+    .row.ai .bubble h2{font-size:15px}
+    .row.ai .bubble h3{font-size:14px;color:var(--accent2)}
+    .row.ai .bubble p{margin:6px 0}
+    .row.ai .bubble ul,.row.ai .bubble ol{padding-left:20px;margin:6px 0}
+    .row.ai .bubble li{margin:3px 0}
+    .row.ai .bubble strong{color:#fff;font-weight:600}
+    .row.ai .bubble em{color:var(--accent2)}
+    .row.ai .bubble code{
+      font-family:'JetBrains Mono',monospace;font-size:12.5px;
+      background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px;
+    }
+    .row.ai .bubble pre{
+      background:rgba(0,0,0,0.4);border:1px solid var(--border);
+      border-radius:8px;padding:12px 14px;margin:8px 0;overflow-x:auto;
+    }
+    .row.ai .bubble pre code{background:none;padding:0;font-size:13px}
+    .row.ai .bubble blockquote{
+      border-left:3px solid var(--accent);padding-left:12px;
+      color:var(--muted2);margin:8px 0;
+    }
+    .row.ai .bubble table{border-collapse:collapse;width:100%;margin:8px 0;font-size:13px}
+    .row.ai .bubble th,.row.ai .bubble td{
+      border:1px solid var(--border);padding:7px 12px;text-align:left;
+    }
+    .row.ai .bubble th{background:rgba(124,111,247,0.1);color:var(--accent2)}
+    .row.ai .bubble hr{border:none;border-top:1px solid var(--border);margin:12px 0}
+
+    /* Typing indicator */
+    .typing-row{display:none;gap:12px;align-items:flex-start}
+    .typing-row.show{display:flex}
+    .typing-dots{
+      display:flex;gap:5px;align-items:center;
+      padding:12px 16px;background:var(--ai-bg);
+      border:1px solid var(--border);border-radius:18px 18px 18px 4px;
+    }
+    .typing-dots span{
+      width:6px;height:6px;background:var(--muted);border-radius:50%;
+      animation:bounce 1.3s infinite;
+    }
+    .typing-dots span:nth-child(2){animation-delay:.2s}
+    .typing-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+    /* ══════════════════════════════
+       INPUT AREA
+    ══════════════════════════════ */
+    .input-area{
+      padding:16px 40px 20px;
+      background:var(--bg);
+      border-top:1px solid var(--border);
+      flex-shrink:0;
+    }
+
+    /* File preview */
+    .file-preview{
+      display:none;align-items:center;gap:8px;
+      padding:7px 12px;margin-bottom:10px;
+      background:rgba(124,111,247,0.08);
+      border:1px solid rgba(124,111,247,0.2);
+      border-radius:8px;font-size:12.5px;color:var(--accent2);
+    }
+    .file-preview.show{display:flex}
+    .file-preview .remove{
+      margin-left:auto;cursor:pointer;color:var(--muted);
+      background:none;border:none;font-size:16px;line-height:1;
+    }
+    .file-preview .remove:hover{color:var(--text)}
+
+    .input-wrap{
+      display:flex;align-items:flex-end;gap:10px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:10px 10px 10px 16px;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    .input-wrap:focus-within{
+      border-color:rgba(124,111,247,.45);
+      box-shadow:0 0 0 3px var(--glow);
+    }
+    .input-wrap textarea{
+      flex:1;background:transparent;border:none;outline:none;
+      color:var(--text);font-family:'Inter',sans-serif;
+      font-size:14px;line-height:1.5;
+      resize:none;max-height:120px;overflow-y:auto;
+      scrollbar-width:none;
+    }
+    .input-wrap textarea::placeholder{color:var(--muted)}
+
+    .input-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+    .attach-btn{
+      width:34px;height:34px;border-radius:8px;
+      background:rgba(255,255,255,0.05);border:1px solid var(--border);
+      color:var(--muted2);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:all .2s;font-size:16px;
+    }
+    .attach-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+
+    .send-btn{
+      width:34px;height:34px;border-radius:8px;
+      background:var(--human-bg);border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:opacity .2s,transform .15s;
+    }
+    .send-btn:hover{opacity:.85;transform:scale(1.05)}
+    .send-btn:active{transform:scale(.95)}
+    .send-btn svg{width:15px;height:15px;color:#fff}
+
+    .hint{font-size:11px;color:var(--muted);text-align:center;margin-top:8px}
+
+    /* ── Voice controls ── */
+    .voice-bar{
+      display:flex;align-items:center;justify-content:center;gap:10px;
+      margin-bottom:10px;
+    }
+    .voice-toggle{
+      display:flex;align-items:center;gap:7px;
+      padding:5px 14px;border-radius:20px;
+      background:rgba(255,255,255,0.04);border:1px solid var(--border);
+      color:var(--muted2);font-size:12px;cursor:pointer;
+      transition:all .2s;user-select:none;
+    }
+    .voice-toggle:hover{background:rgba(255,255,255,0.07);color:var(--text)}
+    .voice-toggle.active{
+      background:rgba(124,111,247,0.12);
+      border-color:rgba(124,111,247,0.35);color:var(--accent2);
+    }
+    .voice-toggle .tgl-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:var(--muted);transition:background .2s;
+    }
+    .voice-toggle.active .tgl-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .voice-feedback{min-height:1em;font-size:11px;color:var(--muted2);text-align:center}
+    .voice-feedback:empty{display:none}
+
+    /* Mic button */
+    .mic-btn{
+      width:34px;height:34px;border-radius:8px;
+      background:rgba(255,255,255,0.05);border:1px solid var(--border);
+      color:var(--muted2);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:all .2s;font-size:17px;flex-shrink:0;
+    }
+    .mic-btn:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+    .mic-btn.listening{
+      background:rgba(239,68,68,0.15);
+      border-color:rgba(239,68,68,0.4);color:#f87171;
+      animation:micPulse 1s infinite;
+    }
+    @keyframes micPulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.3)}
+      50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}
+    }
+
+    /* Speaking indicator in topbar */
+    .speaking-badge{
+      display:none;align-items:center;gap:6px;
+      font-size:11.5px;color:var(--accent2);
+      padding:3px 10px;border-radius:20px;
+      background:rgba(124,111,247,0.1);border:1px solid rgba(124,111,247,0.2);
+    }
+    .speaking-badge.show{display:flex}
+    .speaking-badge .wave{display:flex;gap:2px;align-items:center;height:12px}
+    .speaking-badge .wave span{
+      width:2px;border-radius:2px;background:var(--accent2);
+      animation:wave 0.8s infinite ease-in-out;
+    }
+    .speaking-badge .wave span:nth-child(1){height:4px;animation-delay:0s}
+    .speaking-badge .wave span:nth-child(2){height:8px;animation-delay:.1s}
+    .speaking-badge .wave span:nth-child(3){height:12px;animation-delay:.2s}
+    .speaking-badge .wave span:nth-child(4){height:8px;animation-delay:.3s}
+    .speaking-badge .wave span:nth-child(5){height:4px;animation-delay:.4s}
+    @keyframes wave{
+      0%,100%{transform:scaleY(1)}50%{transform:scaleY(0.4)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <div class="logo">
+      <div class="logo-icon">A</div>
+      <div class="logo-text">Aria</div>
+    </div>
+    <a href="/new" class="new-btn">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      New conversation
+    </a>
+  </div>
+
+  <div class="sidebar-scroll">
+
+    <div class="cap-group">
+      <span class="cap-label">Text Tasks</span>
+      <button class="cap-item" onclick="setPrompt('Summarize this: ')">
+        <span class="cap-icon">📄</span> Summarize text
+      </button>
+      <button class="cap-item" onclick="setPrompt('Improve this text for clarity: ')">
+        <span class="cap-icon">✏️</span> Improve writing
+      </button>
+      <button class="cap-item" onclick="setPrompt('Translate to Spanish: ')">
+        <span class="cap-icon">🌐</span> Translate
+      </button>
+      <button class="cap-item" onclick="setPrompt('Extract key points and action items from: ')">
+        <span class="cap-icon">📌</span> Extract key points
+      </button>
+      <button class="cap-item" onclick="setPrompt('Analyze the sentiment of: ')">
+        <span class="cap-icon">💬</span> Sentiment analysis
+      </button>
+    </div>
+
+    <div class="cap-group">
+      <span class="cap-label">Reasoning</span>
+      <button class="cap-item" onclick="setPrompt('Explain in simple terms: ')">
+        <span class="cap-icon">🧠</span> Explain concept
+      </button>
+      <button class="cap-item" onclick="setPrompt('Compare ')">
+        <span class="cap-icon">⚖️</span> Compare things
+      </button>
+      <button class="cap-item" onclick="setPrompt('Give me pros and cons of: ')">
+        <span class="cap-icon">📊</span> Pros & cons
+      </button>
+    </div>
+
+    <div class="cap-group">
+      <span class="cap-label">Creative</span>
+      <button class="cap-item" onclick="setPrompt('Generate an image of: ')">
+        <span class="cap-icon">🎨</span> Generate image
+      </button>
+      <button class="cap-item" onclick="setPrompt('Write a short story about: ')">
+        <span class="cap-icon">📖</span> Write a story
+      </button>
+      <button class="cap-item" onclick="setPrompt('Write a poem about: ')">
+        <span class="cap-icon">🎭</span> Write a poem
+      </button>
+      <button class="cap-item" onclick="setPrompt('Brainstorm 10 ideas for: ')">
+        <span class="cap-icon">💡</span> Brainstorm ideas
+      </button>
+      <button class="cap-item" onclick="setPrompt('Generate 5 quiz questions about: ')">
+        <span class="cap-icon">❓</span> Generate quiz
+      </button>
+      <button class="cap-item" onclick="setPrompt('Write a product description for: ')">
+        <span class="cap-icon">🏷️</span> Product description
+      </button>
+    </div>
+
+    <div class="cap-group">
+      <span class="cap-label">Structured Output</span>
+      <button class="cap-item" onclick="setPrompt('Parse this into JSON: ')">
+        <span class="cap-icon">🗂️</span> Parse to JSON
+      </button>
+      <button class="cap-item" onclick="setPrompt('Generate a structured report from: ')">
+        <span class="cap-icon">📋</span> Generate report
+      </button>
+    </div>
+
+    <div class="cap-group">
+      <span class="cap-label">Tools</span>
+      <button class="cap-item" onclick="setPrompt('Search the web for: ')">
+        <span class="cap-icon">🔍</span> Web search
+      </button>
+      <button class="cap-item" onclick="setPrompt('Calculate: ')">
+        <span class="cap-icon">🧮</span> Calculator
+      </button>
+      <button class="cap-item" onclick="setPrompt('What is the current time?')">
+        <span class="cap-icon">🕐</span> Current time
+      </button>
+      <button class="cap-item" onclick="setPrompt('Count words in: ')">
+        <span class="cap-icon">🔢</span> Word count
+      </button>
+    </div>
+
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="avatar">U</div>
+    <div>
+      <div class="user-name">You</div>
+      <div class="user-plan">gemma4:31b · Free</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title">Aria Assistant</div>
+      <span class="mode-tag" id="mode-tag">Chat</span>
+    </div>
+    <div class="status">
+      <span class="dot"></span>
+      gemma4:31b · Supabase memory
+    </div>
+    <div class="speaking-badge" id="speaking-badge">
+      <div class="wave">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      Speaking…
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    {% if messages %}
+      {% for msg in messages %}
+        {% if msg.type == 'human' %}
+          <div class="row human">
+            <div class="row-avatar">U</div>
+            <div class="bubble">{{ msg.content }}</div>
+          </div>
+        {% elif msg.type == 'ai' %}
+          <div class="row ai">
+            <div class="row-avatar">A</div>
+            <div class="bubble markdown-content">{{ msg.content | safe }}</div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      <div class="typing-row" id="typing">
+        <div class="row-avatar" style="width:30px;height:30px;border-radius:50%;background:#1a1a2e;border:1px solid rgba(124,111,247,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:Georgia,serif;font-size:16px">A</div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+
+    {% else %}
+      <div class="empty">
+        <div class="empty-orb">A</div>
+        <h2>What can I help with?</h2>
+        <p>I can summarize documents, write creative content, analyze data, search the web, do math, translate text, and much more. Pick a mode from the sidebar or just ask.</p>
+        <div class="chips">
+          <div class="chip" onclick="setPrompt('Summarize this article: ')">📄 Summarize</div>
+          <div class="chip" onclick="setPrompt('Search the web for: ')">🔍 Web search</div>
+          <div class="chip" onclick="setPrompt('Write a short story about: ')">📖 Write story</div>
+          <div class="chip" onclick="setPrompt('Calculate: ')">🧮 Calculate</div>
+          <div class="chip" onclick="setPrompt('Translate to French: ')">🌐 Translate</div>
+          <div class="chip" onclick="setPrompt('Brainstorm 10 ideas for: ')">💡 Brainstorm</div>
+          <div class="chip" onclick="setPrompt('Compare ')">⚖️ Compare</div>
+          <div class="chip" onclick="setPrompt('Parse this into JSON: ')">🗂️ Parse JSON</div>
+          <div class="chip" onclick="setPrompt('Generate an image of: ')">🎨 Generate image</div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Input -->
+  <div class="input-area">
+
+    <div class="voice-bar">
+      <div class="voice-toggle" id="tts-toggle" onclick="toggleTTS()" title="Toggle voice replies">
+        <span class="tgl-dot"></span>
+        🔊 Speak replies
+      </div>
+      <div class="voice-toggle" id="stt-toggle" onclick="toggleSTT()" title="Toggle voice input">
+        <span class="tgl-dot"></span>
+        🎤 Voice input
+      </div>
+      <span class="voice-feedback" id="voice-feedback" role="status" aria-live="polite"></span>
+    </div>
+
+    <!-- File preview bar -->
+    <div class="file-preview" id="file-preview">
+      <span>📎</span>
+      <span id="file-name-display"></span>
+      <button class="remove" onclick="removeFile()" title="Remove file">×</button>
+    </div>
+
+    <form action="/send" method="POST" enctype="multipart/form-data" id="chat-form">
+      <input type="file" id="file-input" name="file" style="display:none"
+             accept=".txt,.pdf,.doc,.docx,.csv,.md,.py,.js,.html,.json"
+             onchange="onFileSelected(this)">
+
+      <div class="input-wrap">
+        <textarea
+          name="message"
+          id="msg-input"
+          placeholder="Ask anything… summarize, translate, search, calculate, write…"
+          rows="1"
+          autocomplete="off"
+        ></textarea>
+        <div class="input-actions">
+          <button type="button" class="attach-btn" onclick="document.getElementById('file-input').click()" title="Attach file">
+            📎
+          </button>
+          <button type="button" class="mic-btn" id="mic-btn" onclick="toggleListening()" title="Voice input">
+            🎤
+          </button>
+          <button type="submit" class="send-btn" aria-label="Send">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <div class="hint">Enter to send · Shift+Enter for new line · 📎 attach files · 🎤 voice input</div>
+  </div>
+</main>
+
+<script>
+  // ── Render markdown in AI bubbles ──────────────────────────
+  document.querySelectorAll('.markdown-content').forEach(el => {
+    // If bubble already contains an img (image generation), don't re-parse as markdown
+    if (el.querySelector('img')) return;
+    el.innerHTML = marked.parse(el.textContent);
+  });
+
+  // ── Auto-scroll ───────────────────────────────────────────
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // ── Auto-resize textarea ─────────────────────────────────
+  const ta = document.getElementById('msg-input');
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+  });
+
+  // ── Enter = send ──────────────────────────────────────────
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const hasFile = document.getElementById('file-input').files.length > 0;
+      if (ta.value.trim() || hasFile) submitForm();
+    }
+  });
+
+  // ── Submit ────────────────────────────────────────────────
+  function submitForm() {
+    const typing = document.getElementById('typing');
+    if (typing) { typing.classList.add('show'); msgs.scrollTop = msgs.scrollHeight; }
+    // Stop any ongoing speech before submitting
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    document.getElementById('chat-form').submit();
+  }
+  document.getElementById('chat-form').addEventListener('submit', () => {
+    const typing = document.getElementById('typing');
+    if (typing) { typing.classList.add('show'); msgs.scrollTop = msgs.scrollHeight; }
+    window.speechSynthesis && window.speechSynthesis.cancel();
+  });
+
+  // ── File attachment ───────────────────────────────────────
+  function onFileSelected(input) {
+    if (input.files && input.files[0]) {
+      const name = input.files[0].name;
+      document.getElementById('file-name-display').textContent = name;
+      document.getElementById('file-preview').classList.add('show');
+      updateModeTag('File: ' + name.split('.').pop().toUpperCase());
+    }
+  }
+
+  function removeFile() {
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-preview').classList.remove('show');
+    updateModeTag('Chat');
+  }
+
+  // ── Quick prompt chips / sidebar ─────────────────────────
+  function setPrompt(text) {
+    ta.value = text;
+    ta.focus();
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+    const labels = {
+      'Summarize':'Summarize','Improve':'Improve','Translate':'Translate',
+      'Extract':'Extract','Analyze':'Sentiment','Explain':'Explain',
+      'Compare':'Compare','pros and cons':'Pros & Cons','Write a short story':'Story',
+      'Write a poem':'Poem','Brainstorm':'Brainstorm','quiz':'Quiz',
+      'product description':'Creative','JSON':'JSON','report':'Report',
+      'Search':'Search','Calculate':'Calculator','time':'Time','Count words':'Word Count'
+    };
+    for (const [k,v] of Object.entries(labels)) {
+      if (text.toLowerCase().includes(k.toLowerCase())) { updateModeTag(v); break; }
+    }
+  }
+
+  function updateModeTag(label) {
+    document.getElementById('mode-tag').textContent = label;
+  }
+
+  // ════════════════════════════════════════════════
+  //  VOICE — Speech-to-Text (STT)
+  // ════════════════════════════════════════════════
+  let recognition = null;
+  let isListening = false;
+
+  function setVoiceFeedback(message) {
+    document.getElementById('voice-feedback').textContent = message;
+  }
+
+  function toggleSTT() {
+    if (isListening) {
+      stopListening();
+      return;
+    }
+    toggleListening();
+  }
+
+  function toggleListening() {
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      setVoiceFeedback('Voice input is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+    if (isListening) { stopListening(); return; }
+    startListening();
+  }
+
+  function startListening() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onstart = () => {
+      isListening = true;
+      document.getElementById('stt-toggle').classList.add('active');
+      document.getElementById('mic-btn').classList.add('listening');
+      ta.placeholder = '🎤 Listening…';
+      setVoiceFeedback('Listening… speak now.');
+    };
+
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results)
+        .map(r => r[0].transcript).join('');
+      ta.value = transcript;
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+      // If final result, auto-submit
+      if (e.results[e.results.length - 1].isFinal) {
+        stopListening();
+        setTimeout(() => submitForm(), 400);
+      }
+    };
+
+    recognition.onerror = (e) => {
+      const messages = {
+        'not-allowed': 'Microphone access is blocked. Allow microphone access in your browser settings.',
+        'service-not-allowed': 'The browser speech service is unavailable.',
+        'network': 'Speech recognition service unavailable. Check your connection and try again.',
+        'no-speech': 'No speech detected. Try again.'
+      };
+      setVoiceFeedback(messages[e.error] || `Voice input failed: ${e.error}.`);
+      stopListening();
+    };
+
+    recognition.onend = () => stopListening();
+    isListening = true;
+    document.getElementById('stt-toggle').classList.add('active');
+    document.getElementById('mic-btn').classList.add('listening');
+    ta.placeholder = '🎤 Listening…';
+    setVoiceFeedback('Starting microphone…');
+    try {
+      recognition.start();
+    } catch (error) {
+      recognition = null;
+      isListening = false;
+      document.getElementById('stt-toggle').classList.remove('active');
+      document.getElementById('mic-btn').classList.remove('listening');
+      ta.placeholder = 'Ask anything… summarize, translate, search, calculate, write…';
+      setVoiceFeedback(`Could not start voice input: ${error.message}`);
+    }
+  }
+
+  function stopListening() {
+    isListening = false;
+    document.getElementById('stt-toggle').classList.remove('active');
+    document.getElementById('mic-btn').classList.remove('listening');
+    ta.placeholder = 'Ask anything… summarize, translate, search, calculate, write…';
+    if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+  }
+
+  // ════════════════════════════════════════════════
+  //  VOICE — Text-to-Speech (TTS)
+  // ════════════════════════════════════════════════
+  let ttsEnabled = false;
+
+  function toggleTTS() {
+    ttsEnabled = !ttsEnabled;
+    document.getElementById('tts-toggle').classList.toggle('active', ttsEnabled);
+    sessionStorage.setItem('ttsEnabled', String(ttsEnabled));
+    if (!ttsEnabled) {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      document.getElementById('speaking-badge').classList.remove('show');
+      setVoiceFeedback('');
+      return;
+    }
+    const replies = document.querySelectorAll('.row.ai .bubble');
+    if (replies.length) {
+      speakText(replies[replies.length - 1].textContent);
+    } else {
+      setVoiceFeedback('Speak replies is on. New replies will be read aloud.');
+    }
+  }
+
+  function speakText(text) {
+    if (!ttsEnabled) return;
+    if (!window.speechSynthesis || !('SpeechSynthesisUtterance' in window)) {
+      setVoiceFeedback('Text-to-speech is not supported in this browser.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+
+    // Strip markdown syntax for cleaner speech
+    const clean = text
+      .replace(/#{1,6}\s/g, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/`{1,3}[^`]*`{1,3}/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/^\s*[-*+]\s/gm, '')
+      .replace(/\n{2,}/g, '. ')
+      .replace(/\n/g, ' ')
+      .trim();
+
+    const utter = new SpeechSynthesisUtterance(clean);
+    utter.rate  = 1.0;
+    utter.pitch = 1.0;
+    utter.volume = 1.0;
+
+    // Pick a good voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v =>
+      /google|natural/i.test(v.name) || v.lang === 'en-US'
+    ) || voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en-'));
+    if (preferred) utter.voice = preferred;
+
+    const badge = document.getElementById('speaking-badge');
+    utter.onstart = () => {
+      badge.classList.add('show');
+      setVoiceFeedback('');
+    };
+    utter.onend = () => badge.classList.remove('show');
+    utter.onerror = (event) => {
+      badge.classList.remove('show');
+      setVoiceFeedback(`Speech playback failed: ${event.error || 'unknown error'}.`);
+    };
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  // ── Auto-speak last AI reply on page load ─────────────────
+  window.addEventListener('load', () => {
+    // Voices load async in some browsers
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => {}; // preload voices
+    }
+    // Speak the latest reply when the user previously enabled read-aloud.
+    ttsEnabled = sessionStorage.getItem('ttsEnabled') === 'true';
+    if (ttsEnabled) {
+      document.getElementById('tts-toggle').classList.add('active');
+      const bubbles = document.querySelectorAll('.row.ai .bubble');
+      if (bubbles.length) {
+        const last = bubbles[bubbles.length - 1];
+        speakText(last.textContent);
+      } else {
+        setVoiceFeedback('Speak replies is on. New replies will be read aloud.');
+      }
+    }
+  });
+
+  // Save TTS preference before page navigates away
+  document.getElementById('chat-form').addEventListener('submit', () => {
+    sessionStorage.setItem('ttsEnabled', ttsEnabled);
+  });
+
+  // ── Focus input on load ───────────────────────────────────
+  ta.focus();
+</script>
+</body>
+</html>
